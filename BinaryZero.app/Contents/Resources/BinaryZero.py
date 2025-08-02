@@ -190,17 +190,17 @@ def send_command():
                 save_path = os.path.join(save_dir, os.path.basename(filename))
 
                 # Receive full file into buffer
-                buffer = b""
-                while True:
-                    data = client.recv(4096)
-                    if not data:
-                        raise ConnectionError("Client disconnected during download")
-                    buffer += data
-                    if b"<END>" in buffer:
-                        parts = buffer.split(b"<END>")
-                        with open(save_path, "wb") as f:
-                            f.write(parts[0])
-                        break
+                with open(save_path, "wb") as f:
+                    while True:
+                        data = client.recv(4096)
+                        if not data:
+                            raise ConnectionError("Client disconnected during download")
+                        if b"<END>" in data:
+                            end_index = data.find(b"<END>")
+                            f.write(data[:end_index])
+                            break
+                        f.write(data)
+
 
                 output_box.insert(tk.END, f"[+] File downloaded to: {save_path}\n")
 
